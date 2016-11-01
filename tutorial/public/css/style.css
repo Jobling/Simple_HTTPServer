@@ -1,3 +1,7 @@
 body {
   background-color: red;
 }
+
+#the-string {
+    display: none;
+}
