@@ -5,7 +5,7 @@
         <script src="http://code.jquery.com/jquery-2.0.3.min.js"></script>
         <script type="text/javascript">
             $(document).ready(function(){
-                $('#generate-string').click(function(e){
+                $("#generate-string").click(function(e){
                     $.post("/generator", {"length": $("input[name='length']").val()})
                     .done(function(string){
                         $("#the-string").show();
@@ -26,7 +26,7 @@
                     e.preventDefault();
                 });
 
-                $("delete-string").click(function(e){
+                $("#delete-string").click(function(e){
                     $.ajax({
                         type: "DELETE",
                         url: "/generator"
