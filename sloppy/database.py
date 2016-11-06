@@ -5,7 +5,7 @@ class database(object):
     def __init__(self, name):
         self.name = name
         try:
-            f = open('bd_' + name, 'rb')
+            f = open('db_' + name, 'rb')
             self.db = pickle.load(f)
             f.close()
         except IOError:
@@ -17,7 +17,7 @@ class database(object):
         else:
             print 'Device with same MAC address already exists.'
 
-        f = open('bd_' + name, 'wb')
+        f = open('db_' + self.name, 'wb')
         pickle.dump(self.db, f)
         f.close()
 
@@ -33,4 +33,7 @@ class database(object):
         pass
 
     def listDevices(self):
-        return self.db
+	ret = {}
+	for key, value in self.db.iteritems():
+		ret[key] = str(value)
+        return ret
