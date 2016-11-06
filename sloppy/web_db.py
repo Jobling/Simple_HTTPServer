@@ -21,7 +21,7 @@ class deviceGetHandler(webapp2.RequestHandler):
 app = webapp2.WSGIApplication([
     webapp2.Route(r'/', MainPage),
     webapp2.Route(r'/devices', devicesListHandler),
-    webapp2.Route(r'/devices/<mac_address:\d+>', deviceGetHandler)
+    webapp2.Route(r'/devices/<mac_address>', deviceGetHandler)
 ], debug=True)
 
 def main():
