@@ -1,4 +1,5 @@
 import device
+import server
 import pickle
 
 class database(object):
@@ -11,9 +12,9 @@ class database(object):
         except IOError:
             self.db = {}
 
-    def addDevice(self, mac, server, application=None, company=None):
+    def addDevice(self, mac, server_ip, server_port):
         if mac not in self.db:
-            self.db[mac] = device.device(mac, server, application, company)
+            self.db[mac] = device.device(mac, server.server(server_ip, server_port))
         else:
             print 'Device with same MAC address already exists.'
 
@@ -25,15 +26,23 @@ class database(object):
         device = self.db.get(mac, None)
         if device is not None:
             return {'mac': device.mac,
-                    'server': device.server,
-                    'application': device.application,
-                    'company': device.company}
+                    'server_ip': device.server.ip,
+                    'server_port': device.server.port}
         else:
             return {}
         pass
 
-    def listDevices(self):
-	ret = {}
-	for key, value in self.db.iteritems():
-		ret[key] = str(value)
+    def getNetwork(self, server):
+        ret = set()
+        for mac, device in self.db.iteritems():
+            if device.server == server:
+                ret.add(mac)
+            else:
+                pass
         return ret
+
+    def listDevices(self):
+    	ret = {}
+    	for mac, device in self.db.iteritems():
+    		ret[mac] = str(device)
+            return ret
