@@ -12,10 +12,12 @@ class MainPage(webapp2.RequestHandler):
 
 class devicesListHandler(webapp2.RequestHandler):
     def get(self):
+	self.response.headers['Content-Type'] = 'application/json'
         self.response.write(json.dumps(db.listDevices()))
 
 class deviceGetHandler(webapp2.RequestHandler):
     def get(self, mac_address):
+	self.response.headers['Content-Type'] = 'application/json'
         self.response.write(json.dumps(db.getDevice(mac_address)))
 
 app = webapp2.WSGIApplication([
