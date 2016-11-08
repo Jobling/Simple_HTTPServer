@@ -20,10 +20,22 @@ class deviceGetHandler(webapp2.RequestHandler):
 	self.response.headers['Content-Type'] = 'application/json'
         self.response.write(json.dumps(db.getDevice(mac_address)))
 
+'''
+class networkListHandler(webapp2.RequestHandler):
+    def get(self):
+        self.response.write(json.dumps(db.listDevices()))
+
+class networkGetHandler(webapp2.RequestHandler):
+    def get(self, server_ip, server_port):
+        self.response.write(json.dumps(db.getDevice(mac_address)))
+'''
+
 app = webapp2.WSGIApplication([
     webapp2.Route(r'/', MainPage),
     webapp2.Route(r'/devices', devicesListHandler),
-    webapp2.Route(r'/devices/<mac_address>', deviceGetHandler)
+    webapp2.Route(r'/devices/<mac_address>', deviceGetHandler),
+    #webapp2.Route(r'/networks', networkListHandler),
+    #webapp2.Route(r'/networks/<server_ip>/<server_port>', networkGetHandler)
 ], debug=True)
 
 def main():
