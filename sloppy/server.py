@@ -1,3 +1,5 @@
+#!/usr/bin/python
+
 class server(object):
     def __init__(self, ip, port):
         self.ip = ip

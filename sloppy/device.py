@@ -1,3 +1,5 @@
+#!/usr/bin/python
+
 class device(object):
     def __init__(self, mac, server):
         self.mac = mac
