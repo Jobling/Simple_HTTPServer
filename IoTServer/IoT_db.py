@@ -29,23 +29,23 @@ class deviceListHandler(webapp2.RequestHandler):
         self.response.set_status(200)
         self.response.write(json.dumps(db.listDevices()))
 
-class deviceHandler(webapp2.RequestHandler):
-    def get(self, mac_address):
-        self.response.headers['Content-Type'] = 'application/json'
-        self.response.set_status(200)
-        self.response.write(json.dumps(db.getDevice(mac_address)))
-
     def put(self):
         datastring = self.request.body
         data = json.loads(datastring)
         
-        objMAC = data['mac_address']
-        objIP = data['server_ip']
-        objPORT = data['server_port']
+        objMAC = str(data['mac_address'])
+        objIP = str(data['server_ip'])
+        objPORT = str(data['server_port'])
         
         db.addDevice(objMAC, objIP, objPORT)
         self.response.set_status(200)
-        self.response.write('OK') 
+        self.response.write('OK')
+
+class deviceHandler(webapp2.RequestHandler):
+    def get(self, mac_address):
+        self.response.headers['Content-Type'] = 'application/json'
+        self.response.set_status(200)
+        self.response.write(json.dumps(db.getDevice(mac_address))) 
 
 app = webapp2.WSGIApplication([
     webapp2.Route(r'/', MainPage),
@@ -62,8 +62,7 @@ def get_host():
     except:
         HOST = '127.0.0.1'
     finally:
-        s.close()
-    print 'Hostname is ' + HOST 
+        s.close() 
 
 def get_port():
     global PORT
@@ -84,17 +83,44 @@ def notify_Controller():
     URL = "http://%s:%s/wm/mactracker/servers" % (CONTROLLER_IP, CONTROLLER_PORT)
     payload = {'hostname': HOST, 'port': PORT}
 
-    response = requests.put(URL, json=payload)
-    print response.content
-    
+    try:
+        requests.put(URL, json=payload)
+    except requests.ConnectionError:
+        print "SDN Controller is offline. Running anyways."
+    except:
+        return False
+    return True
+        
 def main():
     get_host()
     if not get_port():
         print 'Could not find suitable port between 8080 and 9000. Exiting.'
         sys.exit()
-    
-    notify_Controller()
+    if not notify_Controller():
+        print 'An error as occured when contacting SDN Controller.'
+        sys.exit()
+        
     httpserver.serve(app, host=HOST, port=PORT)
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser(prog='IoT Database')
+    
+    local_group = parser.add_argument_group('Local SDN Controller', 'Use when SDN controller is running on same machine.')
+    local_group.add_argument('--local', action='store_true', help='use if controller is running locally')
+    
+    remote_group = parser.add_argument_group('Remote SDN Controller', 'Use when SDN controller is running on remote machine.')
+    remote_group.add_argument('--remote', action='store_true', help='use if controller is running remotely')
+    remote_group.add_argument('-i', '--controller-ip', required=True, help='SDN Controller remote ip address.')
+    remote_group.add_argument('-u', '--controller-port', required=True, help='SDN Controller remote port.')
+    
+    args = parser.parse_args()
+    if args.local == args.remote:
+        print 'The remote is either local or remote.'
+    print vars(args)
+    sys.exit()
+    
     main()
+    
+    
+    
+    
