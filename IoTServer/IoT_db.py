@@ -16,9 +16,6 @@ db = database.database('devices')
 HOST = '127.0.0.1'
 PORT = '8080'
 
-CONTROLLER_IP = '127.0.0.1'
-CONTROLLER_PORT = '5000'
-
 class MainPage(webapp2.RequestHandler):
     def get(self):
         self.response.write('Server is up!')
@@ -92,10 +89,6 @@ def notify_Controller():
     return True
         
 def main():
-    get_host()
-    if not get_port():
-        print 'Could not find suitable port between 8080 and 9000. Exiting.'
-        sys.exit()
     if not notify_Controller():
         print 'An error as occured when contacting SDN Controller.'
         sys.exit()
@@ -103,24 +96,28 @@ def main():
     httpserver.serve(app, host=HOST, port=PORT)
 
 if __name__ == '__main__':
+    global CONTROLLER_IP, CONTROLLER_PORT
+    
     parser = argparse.ArgumentParser(prog='IoT Database')
-    
-    local_group = parser.add_argument_group('Local SDN Controller', 'Use when SDN controller is running on same machine.')
-    local_group.add_argument('--local', action='store_true', help='use if controller is running locally')
-    
-    remote_group = parser.add_argument_group('Remote SDN Controller', 'Use when SDN controller is running on remote machine.')
-    remote_group.add_argument('--remote', action='store_true', help='use if controller is running remotely')
-    remote_group.add_argument('-i', '--controller-ip', required=True, help='SDN Controller remote ip address.')
-    remote_group.add_argument('-u', '--controller-port', required=True, help='SDN Controller remote port.')
-    
+    group = parser.add_argument_group('Remote Controller')
+    group.add_argument('--remote', action='store_true', help='use if controller is running remotely')
+    group.add_argument('-i', '--controller-ip', default=None, help='SDN Controller remote ip address.')
+    group.add_argument('-p', '--controller-port', default=None, help='SDN Controller remote port.')
     args = parser.parse_args()
-    if args.local == args.remote:
-        print 'The remote is either local or remote.'
-    print vars(args)
-    sys.exit()
+    
+    if args.remote:
+        if args.controller_ip is not None and args.controller_port is not None:
+            CONTROLLER_IP = args.controller_ip
+            CONTROLLER_PORT = args.controller_port
+        else:
+            parser.error('When working with remote controller, user must provide ip:port')
+    else:
+        CONTROLLER_IP = '127.0.0.1'
+        CONTROLLER_PORT = '5000'
+    
+    get_host()
+    if not get_port():
+        print 'Could not find suitable port between 8080 and 9000. Exiting.'
+        sys.exit()
     
     main()
-    
-    
-    
-    
