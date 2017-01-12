@@ -21,16 +21,11 @@ class VNFClient():
         if controller_port is None: controller_port = 5000
         if gateway is None: gateway = get_host()
         self.url = 'http://%s:%d/networkService/v1.1/tenants/default/networks' % (controller_ip, controller_port)
-        self.networks = {}
         self.gateway = gateway
 
     def createNetwork(self, name):
         # Generate Network PUT payload
         url = '%s/%s' % (self.url, name)
-        if name in self.networks:
-            print 'Network already exists with gateway %s.' % self.networks[name]['gateway']
-            return
-
         network = {
             'network': {
                 'gateway': self.gateway,
@@ -41,9 +36,8 @@ class VNFClient():
         response = requests.put(url, json=network)
         if response.status_code is not 200:
             print 'Could not create network.'
-            print response
         else:
-            self.networks[name] = {'gateway': self.gateway, 'attachments': []}
+            print 'Network created successfully.'
         
     def attachDevice(self, network, port, macAddress):
         url = '%s/%s/ports/%s/attachment' % (self.url, network, port)
@@ -56,21 +50,19 @@ class VNFClient():
         
         response = requests.put(url, json=attachment)
         if response.status_code is not 200:
-            print 'Failed to create attachment on %s' % (port)
-            print response
+            print 'Failed to create attachment.'
         else:
-            self.networks[network]['attachments'].append({'port': port, 'mac': macAddress})
+            print 'Device attached successfully.'
 
-    def listNetworks(self):
-        os.system('clear')
-        for name, network in self.networks.iteritems():
-            print 'Network: %s (with gateway %s)' % (name, network['gateway'])
-            for attachment in network['attachments']:
+    def getNetworks(self):
+        content = requests.get(self.url).content
+        for network in content:
+            print 'Network: %s (with gateway %s)' % (network['name'], network['gateway'])
+            for attachment in network['portMac']:
                 print '\t%s -- %s' % (attachment['port'], attachment['mac'])
         print ''
 
-    def getNetworks(self):
-        print requests.get(self.url).content
+        
 
 class SimpleMenu():
     def __init__(self, client):
@@ -81,7 +73,6 @@ class SimpleMenu():
             '1': self.new_network,
             '2': self.new_device,
             '3': self.list_all,
-            '4': self.get_from_server,
             '9': self.main_menu,
             '0': self.exit,
         }
@@ -99,7 +90,6 @@ class SimpleMenu():
             print "1. Create Network"
             print "2. Add device to existing Network"
             print "3. List existing Networks"
-            print "4. GET network information"
             print "\n0. Quit"
             choice = raw_input(">>  ")
 
@@ -147,14 +137,7 @@ class SimpleMenu():
     # 3
     def list_all(self):
         os.system('clear')
-        self.client.listNetworks()
-        raw_input("Press ENTER to continue...")
-        return
-
-    # 4
-    def get_from_server(self):
-        os.system('clear')
-        self.client.getNetworks()        
+        self.client.getNetworks()
         raw_input("Press ENTER to continue...")
         return
      
